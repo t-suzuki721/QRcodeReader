@@ -1,0 +1,113 @@
+<html>
+<head>
+<meta charset="utf8"/>
+<title>QRコード画像からURLを取得</title>
+<script src="//cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.3.0/js/bootstrap.min.js"></script>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="QRCode Reader"/>
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+.container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+#mycanvas {
+  display: none;
+}
+*{
+  word-break: break-all;
+}
+</style>
+
+<script>
+let canvas = null;
+let ctx = null;
+
+addEventListener('DOMContentLoaded', ()=>{
+  canvas = document.getElementById('mycanvas');
+  ctx = canvas.getContext('2d');
+  const file_input = document.getElementById('file-input');
+
+  file_input.addEventListener('change', selectReadFile, false);
+});
+
+//選択されたファイルから必要な情報を読み込む
+const selectReadFile = e => {
+  const file = e.target.files;
+  const reader = new FileReader();
+
+  reader.readAsDataURL(file[0]); //読み込みが完了した時点でreader.resultにURLが入る＋loadedが発生する
+  reader.onload = () => readDrawImg(reader, canvas, 0, 0); //↑が完了するとloadedが発生するためonloadで実行
+}
+
+//取得した画像データをcanvasに描画
+const readDrawImg = (reader, canvas, x, y) => {
+  const img = readImg(reader);
+
+  img.onload = function() {
+    const w = img.width; //70pxくらいが限界
+    const h = img.height; //70pxくらいが限界
+
+    drawImgOnCav(canvas, img, x, y, w, h);
+  }
+}
+
+//Imageオブジェクトを作成 → 画像のURLを追加
+const readImg = reader => {
+  const result_dataURL = reader.result;
+  const img = new Image();
+
+  img.src = result_dataURL;
+
+  return img;
+}
+
+//canvasに画像描画
+const drawImgOnCav = (canvas, img, x, y, w, h) => {
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(img, x, y, w, h);
+
+  checkQRCode();
+}
+
+//描画されたQRコードをデータ化し、jsQRで読み込み
+checkQRCode = () => {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); //canvasから画像データを取得
+  const code = jsQR(imageData.data, canvas.width, canvas.height);
+  const file_input = document.getElementById('file-input');
+
+  console.log(code);
+  if(code) confirm(`${code.data}に移動します。`) && window.open(code.data);
+  else alert("QRコードが見つかりません");
+
+  file_input.value = '';
+}
+</script>
+</head>
+<body>
+  <div class="container">
+    <h1>QRコード画像からURLを取得</h1>
+    <p><form enctype="multipart/form-data"><input type="file" accept="image/*" name="file" id="file-input"/></form></p>
+    <p>・使用したライブラリ：jsQR（ <a href="https://github.com/cozmo/jsQR" target="'_blank">https://github.com/cozmo/jsQR</a>）</p>
+    <p>・参考サイト<a href="https://dotnsf.blog.jp/archives/1078584611.html" target="'_blank">https://dotnsf.blog.jp/archives/1078584611.html</a></p>
+    <p>・vueで利用可能（ <a href="https://github.com/gruhn/vue-qrcode-reader" target="'_blank">https://github.com/gruhn/vue-qrcode-reader</a>）</p>
+    <div>
+      <canvas id="mycanvas"></canvas>
+    </div>
+  </div>
+</body>
+</html>
