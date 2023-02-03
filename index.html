@@ -61,7 +61,8 @@ const readDrawImg = (reader, canvas, x, y) => {
     const w = img.width; //70pxくらいが限界
     const h = img.height; //70pxくらいが限界
 
-    drawImgOnCav(canvas, img, x, y, w, h);
+    const resize = resizeWidthHeight( 1024, w, h );
+    drawImgOnCav(canvas, img, x, y, resize.w, resize.h);
   }
 }
 
@@ -82,6 +83,33 @@ const drawImgOnCav = (canvas, img, x, y, w, h) => {
   ctx.drawImage(img, x, y, w, h);
 
   checkQRCode();
+}
+
+const resizeWidthHeight = ( target_length_px, w0, h0 ) => {
+  const length = Math.max( w0, h0 );
+  if( length <= target_length_px ){
+    return({
+      flag: false,
+      w: w0,
+      h: h0
+    });
+  }
+
+  let w1;
+  let h1;
+  if( w0 >= h0 ){
+    w1 = target_length_px;
+    h1 = h0 * target_length_px / w0;
+  }else{
+    w1 = w0 * target_length_px / h0;
+    h1 = target_length_px;
+  }
+
+  return({
+    flag: true,
+    w: parseInt( w1 ),
+    h: parseInt( h1 )
+  });
 }
 
 //描画されたQRコードをデータ化し、jsQRで読み込み
