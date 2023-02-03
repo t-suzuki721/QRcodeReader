@@ -91,8 +91,14 @@ checkQRCode = () => {
   const file_input = document.getElementById('file-input');
 
   console.log(code);
-  if(code) confirm(`${code.data}に移動します。`) && window.open(code.data);
-  else alert("QRコードが見つかりません");
+  if(code) {
+    if(confirm(`${code.data}に移動します。`)) {
+      window.location.href = code.data;
+    }
+  }
+  else {
+    alert("QRコードが見つかりません");
+  }
 
   file_input.value = '';
 }
